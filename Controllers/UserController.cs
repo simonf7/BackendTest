@@ -33,15 +33,21 @@ namespace BackendTest.Controllers
         // POST: api/user
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> PostUser(UserRegister user)
         {
-            // hash the password before storing
-            user.Password = PasswordHasher.HashPasswordV3(user.Password);
+            var newUser = new User
+            {
+                Name = user.Name,
+                Email = user.Email,
+                Password = PasswordHasher.HashPasswordV3(user.Password)
+            };
 
-            _context.Users.Add(user);
+            _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
-            return StatusCode(StatusCodes.Status201Created, ItemToDTO(user));
+            return StatusCode(StatusCodes.Status201Created, ItemToDTO(newUser));
         }
 
         private UserDTO ItemToDTO(User user) =>
