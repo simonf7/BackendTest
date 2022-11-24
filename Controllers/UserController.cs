@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackendTest.Models;
@@ -85,7 +80,9 @@ namespace BackendTest.Controllers
                 return StatusCode(StatusCodes.Status401Unauthorized, problemDetails);
             }
 
-            return StatusCode(StatusCodes.Status201Created, "authorised");
+            string token = JWT.CreateJWT(user.Id.ToString(), user.Email);
+
+            return StatusCode(StatusCodes.Status201Created, new { token = token });
         }
 
         private User FindUserByEmail(string email)
