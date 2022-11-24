@@ -58,10 +58,48 @@ namespace BackendTest.Controllers
             return StatusCode(StatusCodes.Status201Created, ItemToDTO(newUser));
         }
 
-        private bool EmailExists(string email)
+        // POST: api/user/login
+        [HttpPost]
+        [Route("Login")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult> LoginUser(string email, string password)
+        {
+            var user = FindUserByEmail(email);
+
+            // if user with email found, check the password matches the hash
+            if (user != null)
+            {
+                if (!PasswordHasher.VerifyHashedPasswordV3(user.Password, password))
+                {
+                    // password and hash don't match
+                    user = null;
+                }
+            }
+
+            // no user, return unauthorised
+            if (user == null)
+            {
+                var problemDetails = new ValidationProblemDetails(ModelState);
+                problemDetails.Errors.Add("unauthorised", new[] { "Email and password are not authorised." });
+                return StatusCode(StatusCodes.Status401Unauthorized, problemDetails);
+            }
+
+            return StatusCode(StatusCodes.Status201Created, "authorised");
+        }
+
+        private User FindUserByEmail(string email)
         {
             var emailLower = email.ToLower();
-            return _context.Users.Any(e => e.Email.ToLower() == emailLower);
+
+            return _context.Users
+                .Where(e => e.Email.ToLower() == emailLower)
+                .FirstOrDefault();
+        }
+
+        private bool EmailExists(string email)
+        {
+            return FindUserByEmail(email) != null;
         }
 
         private UserDTO ItemToDTO(User user) =>
