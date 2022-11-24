@@ -37,6 +37,14 @@ namespace BackendTest.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PostUser(UserRegister user)
         {
+            // make sure this email isn't already used
+            if (EmailExists(user.Email))
+            {
+                var problemDetails = new ValidationProblemDetails(ModelState);
+                problemDetails.Errors.Add("duplicate", new[] { "User with this email address already exists." });
+                return StatusCode(StatusCodes.Status400BadRequest, problemDetails);
+            }
+
             var newUser = new User
             {
                 Name = user.Name,
@@ -48,6 +56,12 @@ namespace BackendTest.Controllers
             await _context.SaveChangesAsync();
 
             return StatusCode(StatusCodes.Status201Created, ItemToDTO(newUser));
+        }
+
+        private bool EmailExists(string email)
+        {
+            var emailLower = email.ToLower();
+            return _context.Users.Any(e => e.Email.ToLower() == emailLower);
         }
 
         private UserDTO ItemToDTO(User user) =>
