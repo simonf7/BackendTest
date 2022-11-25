@@ -18,6 +18,8 @@ namespace BackendTest.Controllers
 
         // GET: api/user
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             return await _context.Users
@@ -30,7 +32,7 @@ namespace BackendTest.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> PostUser(UserRegister user)
+        public async Task<IActionResult> PostUser([FromForm] UserRegister user)
         {
             // make sure this email isn't already used
             if (EmailExists(user.Email))
@@ -58,14 +60,14 @@ namespace BackendTest.Controllers
         [Route("Login")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult> LoginUser(string email, string password)
+        public async Task<ActionResult> LoginUser([FromForm] UserLogin userLogin)
         {
-            var user = FindUserByEmail(email);
+            var user = FindUserByEmail(userLogin.Email);
 
             // if user with email found, check the password matches the hash
             if (user != null)
             {
-                if (!PasswordHasher.VerifyHashedPasswordV3(user.Password, password))
+                if (!PasswordHasher.VerifyHashedPasswordV3(user.Password, userLogin.Password))
                 {
                     // password and hash don't match
                     user = null;
