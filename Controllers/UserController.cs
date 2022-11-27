@@ -20,8 +20,22 @@ namespace BackendTest.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers([FromHeader(Name = "Authorization")] string authorizationHeader)
         {
+            // Bit hacky, should've been done with Middleware for scalability
+            if (authorizationHeader.StartsWith("Bearer "))
+            {
+                authorizationHeader = authorizationHeader.Substring(7);
+            }
+
+            var userId = JWT.ValidateJWT(authorizationHeader);
+            if (userId == null)
+            {
+                var problemDetails = new ValidationProblemDetails(ModelState);
+                problemDetails.Errors.Add("unauthorised", new[] { "Invalid token." });
+                return StatusCode(StatusCodes.Status401Unauthorized, problemDetails);
+            }
+
             return await _context.Users
                 .Select(x => ItemToDTO(x))
                 .ToListAsync();
