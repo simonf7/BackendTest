@@ -18,7 +18,8 @@ namespace BackendTest.Controllers
 
         // GET: api/user
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers([FromHeader(Name = "Authorization")] string authorizationHeader)
         {
